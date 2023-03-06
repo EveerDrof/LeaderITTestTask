@@ -1,0 +1,181 @@
+openapi: '3.0.3'
+info:
+  title: 'Test task'
+  version: '0.0.1'
+paths:
+  /device:
+    post:
+      description: Adds a new device
+      requestBody: 
+        content: 
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Device'
+      responses:
+        '200': 
+          description: Returns device
+          content: 
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AddDeviceResponse'
+  /device/{serialNumber}:
+    get:
+      description: Get device data
+      responses: 
+        '200':
+          description: Device data
+          content: 
+            application/json:
+              schema: 
+                $ref: '#/components/schemas/DeviceStatus'
+  /device/:
+    get:
+      requestBody:
+        content:
+          application/json:
+            schema: 
+              $ref: '#/components/schemas/DeviceQuery'
+            
+      responses:
+        '200':
+          description: Returns all devices that fit query.
+          content:
+            application/json:
+              schema: 
+                properties: 
+                  devices:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/DeviceStatus'
+                  totalDevicesSize:
+                    type: integer
+  /event:
+    post:
+      description: Adds a new event for a specified device
+      requestBody: 
+        content:
+          application/json:
+            schema: 
+              $ref: '#/components/schemas/AddEventInfo'
+      responses: 
+        '200':
+          description: Added new event successfully
+        '401':
+          description: Invalid secret key
+        '404':
+          description: Device not found
+          
+  /event/device/{deviceId}:
+    get:
+      requestBody: 
+        content: 
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DatePageLlimit'
+      responses: 
+        '200':
+          description: Returns all events that fit query
+          content:
+            application/json:
+              schema: 
+                properties: 
+                  events:
+                    type: array
+                    items: 
+                      $ref: '#/components/schemas/Event'
+                  totalEventsSize:
+                    type: integer
+  /event/grouped-by-device-type/:
+    get:
+      requestBody: 
+          content: 
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DatePageLlimit'
+      responses: 
+        '200':
+          description: Returns all events that fit query grouped by device type
+          content:
+                application/json:
+                  schema: 
+                    properties: 
+                      events:
+                        type: object
+                        additionalProperties:
+                          items:
+                            $ref: '#/components/schemas/Event'
+                      totalEventsSize:
+                        type: integer
+
+components:
+  schemas:
+    AddDeviceResponse:
+      type: object
+      properties:
+        secretKey:
+          type: string
+    Device:
+      properties: 
+        name:
+          type: string
+        serialNumber:
+          type: number
+          format: int64
+        deviceType:
+          type: string
+    DeviceStatus:
+      properties: 
+        device : 
+          $ref: '#/components/schemas/Device'
+        isActive:
+          type: boolean
+        creationDate:
+          type: string
+          format: date-time
+        firstActivityDate:
+          type: string
+          format: date-time
+        lastActivityDate:
+          type: string
+          format: date-time
+    AddEventInfo:
+      properties: 
+        secretKey:
+          type: string
+        eventType:
+          type: string
+        deviceSerialNumber:
+          type: integer
+          format: int32
+        payload:
+          type: object
+    DeviceQuery:
+      properties: 
+        type:
+          type: string
+        datePageLimit:
+          $ref: '#/components/schemas/DatePageLlimit'
+    DatePageLlimit:
+      properties: 
+        latestCreationDate:
+          type: string
+          format: date-time
+        earliestCreationDate:
+          type: string
+          format: date-time
+        page:
+          type: integer
+    Event:
+      properties: 
+        id:
+          type: integer
+        deviceId:
+          type: integer
+        type:
+          type: string
+        payload:
+          type: object
+        creationDate:
+          type: string
+          format: date-time
+        

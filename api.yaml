@@ -6,43 +6,53 @@ paths:
   /device:
     post:
       description: Adds a new device
-      requestBody: 
-        content: 
+      requestBody:
+        content:
           application/json:
             schema:
               $ref: '#/components/schemas/Device'
       responses:
-        '200': 
+        '200':
           description: Returns device
-          content: 
+          content:
             application/json:
               schema:
-                $ref: '#/components/schemas/AddDeviceResponse'
+                properties:
+                  apiResponse:
+                    $ref: '#/components/schemas/ApiResponse'
+                  payload:
+                    $ref: '#/components/schemas/AddDeviceResponse'
   /device/{serialNumber}:
     get:
       description: Get device data
-      responses: 
-        '200':
+      responses:
+        default:
           description: Device data
-          content: 
+          content:
             application/json:
-              schema: 
-                $ref: '#/components/schemas/DeviceStatus'
+              schema:
+                properties:
+                  apiResponse:
+                    $ref: '#/components/schemas/ApiResponse'
+                  payload:
+                    $ref: '#/components/schemas/DeviceStatus'
   /device/:
     get:
       requestBody:
         content:
           application/json:
-            schema: 
+            schema:
               $ref: '#/components/schemas/DeviceQuery'
-            
+
       responses:
-        '200':
+        default:
           description: Returns all devices that fit query.
           content:
             application/json:
-              schema: 
-                properties: 
+              schema:
+                properties:
+                  apiResponse:
+                    $ref: '#/components/schemas/ApiResponse'
                   devices:
                     type: array
                     items:
@@ -52,53 +62,59 @@ paths:
   /event:
     post:
       description: Adds a new event for a specified device
-      requestBody: 
+      requestBody:
         content:
           application/json:
-            schema: 
+            schema:
               $ref: '#/components/schemas/AddEventInfo'
-      responses: 
-        '200':
-          description: Added new event successfully
-        '401':
-          description: Invalid secret key
-        '404':
-          description: Device not found
-          
+      responses:
+        default:
+          description: Returns api response
+          content:
+            application/json:
+              schema:
+                properties:
+                  apiResponse:
+                    $ref: '#/components/schemas/ApiResponse'
+
   /event/device/{deviceId}:
     get:
-      requestBody: 
-        content: 
+      requestBody:
+        content:
           application/json:
             schema:
               $ref: '#/components/schemas/DatePageLlimit'
-      responses: 
-        '200':
+      responses:
+        default:
           description: Returns all events that fit query
           content:
             application/json:
-              schema: 
-                properties: 
+              schema:
+                properties:
+                  apiResponse:
+                    $ref: '#/components/schemas/ApiResponse'
                   events:
                     type: array
-                    items: 
+                    items:
                       $ref: '#/components/schemas/Event'
                   totalEventsSize:
                     type: integer
   /event/grouped-by-device-type/:
     get:
-      requestBody: 
-          content: 
+      requestBody:
+          content:
             application/json:
               schema:
                 $ref: '#/components/schemas/DatePageLlimit'
-      responses: 
-        '200':
+      responses:
+        default:
           description: Returns all events that fit query grouped by device type
           content:
                 application/json:
-                  schema: 
-                    properties: 
+                  schema:
+                    properties:
+                      apiResponse:
+                        $ref: '#/components/schemas/ApiResponse'
                       events:
                         type: object
                         additionalProperties:
@@ -115,17 +131,17 @@ components:
         secretKey:
           type: string
     Device:
-      properties: 
+      properties:
         name:
           type: string
-        serialNumber:
+        serial:
           type: number
           format: int64
         deviceType:
           type: string
     DeviceStatus:
-      properties: 
-        device : 
+      properties:
+        device :
           $ref: '#/components/schemas/Device'
         isActive:
           type: boolean
@@ -139,7 +155,7 @@ components:
           type: string
           format: date-time
     AddEventInfo:
-      properties: 
+      properties:
         secretKey:
           type: string
         eventType:
@@ -150,13 +166,13 @@ components:
         payload:
           type: object
     DeviceQuery:
-      properties: 
+      properties:
         type:
           type: string
         datePageLimit:
           $ref: '#/components/schemas/DatePageLlimit'
     DatePageLlimit:
-      properties: 
+      properties:
         latestCreationDate:
           type: string
           format: date-time
@@ -166,7 +182,7 @@ components:
         page:
           type: integer
     Event:
-      properties: 
+      properties:
         id:
           type: integer
         deviceId:
@@ -178,4 +194,7 @@ components:
         creationDate:
           type: string
           format: date-time
-        
+    ApiResponse:
+      properties:
+        message:
+          type: string

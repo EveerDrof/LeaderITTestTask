@@ -1,6 +1,7 @@
 package com.example.LeaderITTestTask;
 
 import jakarta.transaction.Transactional;
+import org.json.JSONObject;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
@@ -38,15 +39,33 @@ class LeaderItTestTaskApplicationTests {
     }
 
     private ResultActions postDevice(String name, long serial, String deviceType) throws Exception {
+        JSONObject jsonObject = new JSONObject();
+        jsonObject.put("name", name);
+        jsonObject.put("serial", serial);
+        jsonObject.put("deviceType", deviceType);
+        return postJSON(jsonObject, "/device");
+    }
+
+    private ResultActions postEvent(
+            String secretKey,
+            String eventType,
+            Long deviceSerial,
+            Object payload
+    ) throws Exception {
+        JSONObject jsonObject = new JSONObject();
+        jsonObject.put("secretKey", secretKey);
+        jsonObject.put("eventType", eventType);
+        jsonObject.put("deviceSerial", deviceSerial);
+        jsonObject.put("payload", payload);
+        return postJSON(jsonObject, "/event");
+    }
+
+    private ResultActions postJSON(JSONObject content, String path) throws Exception {
         return mockMvc.perform(
-                post("/device")
+                post(path)
                         .contentType(MediaType.APPLICATION_JSON_VALUE)
                         .accept(MediaType.APPLICATION_JSON_VALUE)
-                        .content("{\n" +
-                                 "  \"name\": \"" + name + "\",\n" +
-                                 "  \"serial\": " + serial + ",\n" +
-                                 "  \"deviceType\": \"" + deviceType + "\"\n" +
-                                 "}")
+                        .content(content.toString())
         );
     }
 
@@ -88,5 +107,17 @@ class LeaderItTestTaskApplicationTests {
                 .andExpect(jsonPath("$.message")
                         .value("No device with this serial")
                 );
+    }
+
+    @Test
+    public void postCorrectEvent_should_return_200() throws Exception {
+        String result = postDevice("Device", 1L, "Type")
+                .andReturn()
+                .getResponse()
+                .getContentAsString();
+        JSONObject jsonObject = new JSONObject(result);
+        String secretKey = jsonObject.getJSONObject("payload").getString("secretKey");
+        postEvent(secretKey, "EventType", 1L, null)
+                .andExpect(status().isOk());
     }
 }

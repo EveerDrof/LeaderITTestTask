@@ -10,41 +10,18 @@ import java.security.NoSuchAlgorithmException;
 import java.util.HashMap;
 import java.util.Optional;
 
+import static com.example.LeaderITTestTask.Utils.*;
+
 @RestController
-public class Controller {
+public class DeviceController {
     private final DeviceService deviceService;
     private final Security security;
 
-    public Controller(DeviceService devicesAndEventsService, Security security) {
+    public DeviceController(DeviceService devicesAndEventsService, Security security) {
         this.deviceService = devicesAndEventsService;
         this.security = security;
     }
 
-    private <T> ResponseEntity<ApiResponse<T>> wrapResponse(
-            T payload,
-            String message,
-            HttpStatus httpStatus) {
-        return new ResponseEntity<>(new ApiResponse<>(payload, message), httpStatus);
-    }
-
-    private <T> ResponseEntity<ApiResponse<T>> wrapOk(T payload) {
-        return wrapResponse(payload, "Success", HttpStatus.OK);
-    }
-
-    private ResponseEntity<ApiResponse<Object>> wrapClientError(
-            String message,
-            HttpStatus httpStatus
-    ) {
-        return wrapResponse(null, message, httpStatus);
-    }
-
-    private ResponseEntity<ApiResponse<Object>> wrapBadRequest(String message) {
-        return wrapClientError(message, HttpStatus.BAD_REQUEST);
-    }
-
-    private ResponseEntity<ApiResponse<Object>> wrapNotFound(String message) {
-        return wrapClientError(message, HttpStatus.NOT_FOUND);
-    }
 
     @PostMapping(
             value = "/device",

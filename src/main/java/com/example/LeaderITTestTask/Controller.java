@@ -1,5 +1,6 @@
 package com.example.LeaderITTestTask;
 
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -26,13 +27,21 @@ public class Controller {
         return wrapResponse(payload, "Success", HttpStatus.OK);
     }
 
+    private ResponseEntity<ApiResponse<Object>> wrapBadRequest(String message) {
+        return wrapResponse(null, message, HttpStatus.BAD_REQUEST);
+    }
+
     @PostMapping(
             value = "/device",
             produces = MediaType.APPLICATION_JSON_VALUE,
             consumes = MediaType.APPLICATION_JSON_VALUE
     )
-    public ResponseEntity<ApiResponse<HashMap<String, String>>> addNewDevice(@RequestBody Device device) {
-        deviceService.save(device);
+    public ResponseEntity<ApiResponse<Object>> addNewDevice(@RequestBody Device device) {
+        try {
+            deviceService.save(device);
+        } catch (DataIntegrityViolationException exception) {
+            return wrapBadRequest("This serial already exists");
+        }
         HashMap<String, String> result = new HashMap<>();
         result.put("secretKey", "12345");
         return wrapOk(result);

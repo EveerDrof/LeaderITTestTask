@@ -16,7 +16,7 @@ public class DeviceService {
         return deviceRepository.findBySerial(serialNumber);
     }
 
-    public void save(Device device) {
-        deviceRepository.save(device);
+    public Device save(Device device) {
+        return deviceRepository.save(device);
     }
 }

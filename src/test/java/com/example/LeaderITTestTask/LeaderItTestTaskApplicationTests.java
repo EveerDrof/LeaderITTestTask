@@ -10,6 +10,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.ResultActions;
 import org.springframework.web.context.WebApplicationContext;
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
@@ -34,37 +35,31 @@ class LeaderItTestTaskApplicationTests {
         this.mockMvc = webAppContextSetup(this.wac).build();
     }
 
-    @Test
-    public void addNewDevice_should_return_200() throws Exception {
-        mockMvc.perform(
+    private ResultActions postDevice(String name, long serial, String deviceType) throws Exception {
+        return mockMvc.perform(
                 post("/device")
                         .contentType(MediaType.APPLICATION_JSON_VALUE)
                         .accept(MediaType.APPLICATION_JSON_VALUE)
-                        .content("""
-                                {
-                                  "name": "My Refrigerator",
-                                  "serial": 12312,
-                                  "deviceType": "Refrigerator"
-                                }""")
-        ).andExpect(status().isOk()).andExpect(
-                jsonPath("$.message")
-                        .value("Success")
-        ).andExpect(jsonPath("$.payload.secretKey").exists());
+                        .content("{\n" +
+                                 "  \"name\": \"" + name + "\",\n" +
+                                 "  \"serial\": " + serial + ",\n" +
+                                 "  \"deviceType\": \"" + deviceType + "\"\n" +
+                                 "}")
+        );
+    }
+
+    @Test
+    public void addNewDevice_should_return_200() throws Exception {
+        postDevice("aaa", 0, "asd")
+                .andExpect(status().isOk()).andExpect(
+                        jsonPath("$.message")
+                                .value("Success")
+                ).andExpect(jsonPath("$.payload.secretKey").exists());
     }
 
     @Test
     public void getCreatedDevice_should_return_device() throws Exception {
-        mockMvc.perform(
-                post("/device")
-                        .contentType(MediaType.APPLICATION_JSON_VALUE)
-                        .accept(MediaType.APPLICATION_JSON_VALUE)
-                        .content("""
-                                {
-                                  "name": "My Refrigerator",
-                                  "serial": 12312,
-                                  "deviceType": "Refrigerator"
-                                }""")
-        );
+        postDevice("My Refrigerator", 12312, "Refrigerator");
         mockMvc.perform(get("/device/12312"))
                 .andExpect(status().isOk()).andExpect(
                         jsonPath("$.payload.name")

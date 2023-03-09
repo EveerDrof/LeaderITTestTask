@@ -7,6 +7,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.HashMap;
+import java.util.Optional;
 
 @RestController
 public class Controller {
@@ -27,8 +28,19 @@ public class Controller {
         return wrapResponse(payload, "Success", HttpStatus.OK);
     }
 
+    private ResponseEntity<ApiResponse<Object>> wrapClientError(
+            String message,
+            HttpStatus httpStatus
+    ) {
+        return wrapResponse(null, message, httpStatus);
+    }
+
     private ResponseEntity<ApiResponse<Object>> wrapBadRequest(String message) {
-        return wrapResponse(null, message, HttpStatus.BAD_REQUEST);
+        return wrapClientError(message, HttpStatus.BAD_REQUEST);
+    }
+
+    private ResponseEntity<ApiResponse<Object>> wrapNotFound(String message) {
+        return wrapClientError(message, HttpStatus.NOT_FOUND);
     }
 
     @PostMapping(
@@ -48,8 +60,11 @@ public class Controller {
     }
 
     @GetMapping(value = "/device/{serialNumber}")
-    public ResponseEntity<ApiResponse<Device>> getDeviceBySerialNumber(@PathVariable Long serialNumber) {
-        Device device = deviceService.getDevice(serialNumber).get();
-        return wrapOk(device);
+    public ResponseEntity<ApiResponse<Object>> getDeviceBySerialNumber(@PathVariable Long serialNumber) {
+        Optional<Device> result = deviceService.getDevice(serialNumber);
+        if (result.isEmpty()) {
+            return wrapNotFound("No device with this serial");
+        }
+        return wrapOk(result.get());
     }
 }

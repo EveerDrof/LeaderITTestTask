@@ -78,4 +78,13 @@ class LeaderItTestTaskApplicationTests {
                         .value("This serial already exists")
                 );
     }
+
+    @Test
+    public void nonExistentSerialDeviceGetCheck_should_return_404() throws Exception {
+        mockMvc.perform(get("/device/291"))
+                .andExpect(status().isNotFound())
+                .andExpect(jsonPath("$.message")
+                        .value("No device with this serial")
+                );
+    }
 }

@@ -1,6 +1,9 @@
 package com.example.LeaderITTestTask;
 
 import jakarta.persistence.*;
+import org.hibernate.annotations.CreationTimestamp;
+
+import java.time.LocalDateTime;
 
 @Entity
 public class Device {
@@ -8,20 +11,16 @@ public class Device {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "id", nullable = false)
     private Long id;
-
-    private String name;
     @Column(name = "serial", nullable = false, unique = true)
     private Long serial;
+    private String name;
     private String deviceType;
+    @CreationTimestamp
+    @Temporal(TemporalType.TIMESTAMP)
+    private LocalDateTime creationDate;
 
     public Device() {
 
-    }
-
-    public Device(String name, Long serial, String deviceType) {
-        this.name = name;
-        this.serial = serial;
-        this.deviceType = deviceType;
     }
 
     public Long getId() {
@@ -38,5 +37,9 @@ public class Device {
 
     public String getDeviceType() {
         return deviceType;
+    }
+
+    public LocalDateTime getCreationDate() {
+        return creationDate;
     }
 }

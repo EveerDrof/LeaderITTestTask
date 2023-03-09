@@ -70,6 +70,7 @@ class LeaderItTestTaskApplicationTests {
                         jsonPath("$.payload.name")
                                 .value("My Refrigerator")
                 ).andExpect(jsonPath("$.payload.deviceType")
-                        .value("Refrigerator"));
+                        .value("Refrigerator"))
+                .andExpect(jsonPath("$.payload.creationDate").exists());
     }
 }

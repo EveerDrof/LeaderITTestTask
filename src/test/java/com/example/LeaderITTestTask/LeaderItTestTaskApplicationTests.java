@@ -68,4 +68,14 @@ class LeaderItTestTaskApplicationTests {
                         .value("Refrigerator"))
                 .andExpect(jsonPath("$.payload.creationDate").exists());
     }
+
+    @Test
+    public void createDevicesWithSameSerial_should_return_400() throws Exception {
+        postDevice("My Refrigerator", 12312, "Refrigerator");
+        postDevice("My Refrigerator", 12312, "Refrigerator")
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.message")
+                        .value("This serial already exists")
+                );
+    }
 }

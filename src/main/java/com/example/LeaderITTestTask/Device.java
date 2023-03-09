@@ -24,32 +24,34 @@ public class Device {
 
     }
 
-    public Device(Long serial, String name, String deviceType) {
-        this.serial = serial;
-        this.name = name;
-        this.deviceType = deviceType;
-    }
 
     public Long getId() {
         return id;
     }
-
+    
     public Long getSerial() {
         return serial;
     }
+
 
     public String getName() {
         return name;
     }
 
+
     public String getDeviceType() {
         return deviceType;
     }
+
 
     public LocalDateTime getCreationDate() {
         return creationDate;
     }
 
+
+    public String getSecretHash() {
+        return secretHash;
+    }
 
     public void setSecretHash(String hash) {
         this.secretHash = hash;

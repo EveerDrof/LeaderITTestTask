@@ -1,30 +1,21 @@
 package com.example.LeaderITTestTask;
 
+import org.apache.commons.lang3.RandomStringUtils;
+import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
-import java.security.NoSuchAlgorithmException;
-import java.security.SecureRandom;
-
 @Configuration
 public class Security {
-    private final PasswordEncoder passwordEncoder;
-    private final SecureRandom secureRandom;
-
-    public Security() throws NoSuchAlgorithmException {
-        passwordEncoder = new BCryptPasswordEncoder();
-        secureRandom = SecureRandom.getInstanceStrong();
+    public static String nextKey() {
+        return RandomStringUtils.random(20, 0, 0, true, true);
     }
 
-    public String nextKey() {
-        byte[] bytes = new byte[512];
-        secureRandom.nextBytes(bytes);
-        return new String(bytes);
+    @Bean
+    public PasswordEncoder passwordEncoder() {
+        return new BCryptPasswordEncoder();
     }
 
-    public String hash(String key) throws NoSuchAlgorithmException {
-        return passwordEncoder.encode(key);
-    }
 
 }

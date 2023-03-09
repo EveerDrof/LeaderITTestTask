@@ -1,21 +1,17 @@
 package com.example.LeaderITTestTask;
 
 import jakarta.transaction.Transactional;
-import org.json.JSONObject;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.http.MediaType;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.test.web.servlet.MockMvc;
-import org.springframework.test.web.servlet.ResultActions;
 import org.springframework.web.context.WebApplicationContext;
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 import static org.springframework.test.web.servlet.setup.MockMvcBuilders.webAppContextSetup;
@@ -26,9 +22,9 @@ import static org.springframework.test.web.servlet.setup.MockMvcBuilders.webAppC
 @Transactional
 class LeaderItTestTaskApplicationTests {
 
+    private TestUtils utils;
     @Autowired
     private WebApplicationContext wac;
-
     private MockMvc mockMvc;
     @Autowired
     private DeviceRepository deviceRepository;
@@ -36,42 +32,12 @@ class LeaderItTestTaskApplicationTests {
     @BeforeAll
     public void setup() {
         this.mockMvc = webAppContextSetup(this.wac).build();
-    }
-
-    private ResultActions postDevice(String name, long serial, String deviceType) throws Exception {
-        JSONObject jsonObject = new JSONObject();
-        jsonObject.put("name", name);
-        jsonObject.put("serial", serial);
-        jsonObject.put("deviceType", deviceType);
-        return postJSON(jsonObject, "/device");
-    }
-
-    private ResultActions postEvent(
-            String secretKey,
-            String eventType,
-            Long deviceSerial,
-            Object payload
-    ) throws Exception {
-        JSONObject jsonObject = new JSONObject();
-        jsonObject.put("secretKey", secretKey);
-        jsonObject.put("eventType", eventType);
-        jsonObject.put("deviceSerial", deviceSerial);
-        jsonObject.put("payload", payload);
-        return postJSON(jsonObject, "/event");
-    }
-
-    private ResultActions postJSON(JSONObject content, String path) throws Exception {
-        return mockMvc.perform(
-                post(path)
-                        .contentType(MediaType.APPLICATION_JSON_VALUE)
-                        .accept(MediaType.APPLICATION_JSON_VALUE)
-                        .content(content.toString())
-        );
+        this.utils = new TestUtils(mockMvc);
     }
 
     @Test
     public void addNewDevice_should_return_200() throws Exception {
-        postDevice("aaa", 0, "asd")
+        utils.postDevice("aaa", 0, "asd")
                 .andExpect(status().isOk()).andExpect(
                         jsonPath("$.message")
                                 .value("Success")
@@ -80,7 +46,7 @@ class LeaderItTestTaskApplicationTests {
 
     @Test
     public void getCreatedDevice_should_return_device() throws Exception {
-        postDevice("My Refrigerator", 12312, "Refrigerator");
+        utils.postDevice("My Refrigerator", 12312, "Refrigerator");
         mockMvc.perform(get("/device/12312"))
                 .andExpect(status().isOk()).andExpect(
                         jsonPath("$.payload.name")
@@ -92,8 +58,8 @@ class LeaderItTestTaskApplicationTests {
 
     @Test
     public void createDevicesWithSameSerial_should_return_400() throws Exception {
-        postDevice("My Refrigerator", 12312, "Refrigerator");
-        postDevice("My Refrigerator", 12312, "Refrigerator")
+        utils.postDevice("My Refrigerator", 12312, "Refrigerator");
+        utils.postDevice("My Refrigerator", 12312, "Refrigerator")
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.message")
                         .value("This serial already exists")
@@ -111,13 +77,20 @@ class LeaderItTestTaskApplicationTests {
 
     @Test
     public void postCorrectEvent_should_return_200() throws Exception {
-        String result = postDevice("Device", 1L, "Type")
-                .andReturn()
-                .getResponse()
-                .getContentAsString();
-        JSONObject jsonObject = new JSONObject(result);
-        String secretKey = jsonObject.getJSONObject("payload").getString("secretKey");
-        postEvent(secretKey, "EventType", 1L, null)
+        String key = utils.getSecretKey(
+                utils.postDevice("Device", 1L, "Type")
+        );
+        Device device = utils.getDevice(1L);
+        utils.postEvent(key, "EventType", device.getId(), null)
                 .andExpect(status().isOk());
+    }
+
+    @Test
+    public void postIncorrectSecretKey_should_return_401() throws Exception {
+        utils.postDevice("Device", 1L, "Type");
+        Device device = utils.getDevice(1L);
+        utils.postEvent("Incorrect Key", "EventType", device.getId(), null)
+                .andExpect(status().isUnauthorized())
+                .andExpect(jsonPath("$.message").value("Incorrect key"));
     }
 }

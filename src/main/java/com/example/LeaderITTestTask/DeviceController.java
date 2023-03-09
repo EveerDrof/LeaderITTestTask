@@ -1,25 +1,28 @@
 package com.example.LeaderITTestTask;
 
 import org.springframework.dao.DataIntegrityViolationException;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 
-import java.security.NoSuchAlgorithmException;
 import java.util.HashMap;
 import java.util.Optional;
 
-import static com.example.LeaderITTestTask.Utils.*;
+import static com.example.LeaderITTestTask.Security.nextKey;
+import static com.example.LeaderITTestTask.Utils.Response.*;
 
 @RestController
 public class DeviceController {
     private final DeviceService deviceService;
-    private final Security security;
+    private final PasswordEncoder passwordEncoder;
 
-    public DeviceController(DeviceService devicesAndEventsService, Security security) {
+    public DeviceController(
+            DeviceService devicesAndEventsService,
+            PasswordEncoder passwordEncoder
+    ) {
         this.deviceService = devicesAndEventsService;
-        this.security = security;
+        this.passwordEncoder = passwordEncoder;
     }
 
 
@@ -32,26 +35,22 @@ public class DeviceController {
         try {
             device = deviceService.save(device);
         } catch (DataIntegrityViolationException exception) {
-            return wrapBadRequest("This serial already exists");
+            return badRequest("This serial already exists");
         }
         String secret;
-        try {
-            secret = security.nextKey();
-            device.setSecretHash(security.hash(secret));
-        } catch (NoSuchAlgorithmException noSuchAlgorithmException) {
-            return wrapResponse(null, "Server error", HttpStatus.INTERNAL_SERVER_ERROR);
-        }
+        secret = nextKey();
+        device.setSecretHash(passwordEncoder.encode(secret));
         HashMap<String, String> result = new HashMap<>();
         result.put("secretKey", secret);
-        return wrapOk(result);
+        return ok(result);
     }
 
     @GetMapping(value = "/device/{serialNumber}")
     public ResponseEntity<ApiResponse<Object>> getDeviceBySerialNumber(@PathVariable Long serialNumber) {
         Optional<Device> result = deviceService.getDevice(serialNumber);
-        if (result.isEmpty()) {
-            return wrapNotFound("No device with this serial");
+        if (!result.isPresent()) {
+            return notFound("No device with this serial");
         }
-        return wrapOk(result.get());
+        return ok(result.get());
     }
 }

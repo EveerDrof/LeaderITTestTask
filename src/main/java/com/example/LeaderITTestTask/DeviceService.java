@@ -19,4 +19,8 @@ public class DeviceService {
     public Device save(Device device) {
         return deviceRepository.save(device);
     }
+
+    public Optional<Device> getById(Long deviceId) {
+        return deviceRepository.findById(deviceId);
+    }
 }

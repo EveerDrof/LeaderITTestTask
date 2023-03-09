@@ -10,7 +10,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/Device'
+              $ref: '#/components/schemas/DeviceCreationData'
       responses:
         '200':
           description: Returns device
@@ -35,7 +35,7 @@ paths:
                   message:
                     type: string
                   payload:
-                    $ref: '#/components/schemas/DeviceStatus'
+                    $ref: '#/components/schemas/Device'
   /device/:
     get:
       requestBody:
@@ -56,7 +56,7 @@ paths:
                   devices:
                     type: array
                     items:
-                      $ref: '#/components/schemas/DeviceStatus'
+                      $ref: '#/components/schemas/Device'
                   totalDevicesSize:
                     type: integer
   /event:
@@ -130,6 +130,15 @@ components:
       properties:
         secretKey:
           type: string
+    DeviceCreationData:
+      properties:
+        name:
+          type: string
+        serial:
+          type: number
+          format: int64
+        deviceType:
+          type: string
     Device:
       properties:
         name:
@@ -139,10 +148,6 @@ components:
           format: int64
         deviceType:
           type: string
-    DeviceStatus:
-      properties:
-        device :
-          $ref: '#/components/schemas/Device'
         isActive:
           type: boolean
         creationDate:

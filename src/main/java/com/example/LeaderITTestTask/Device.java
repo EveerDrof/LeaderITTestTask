@@ -18,9 +18,16 @@ public class Device {
     @CreationTimestamp
     @Temporal(TemporalType.TIMESTAMP)
     private LocalDateTime creationDate;
+    private String secretHash;
 
     public Device() {
 
+    }
+
+    public Device(Long serial, String name, String deviceType) {
+        this.serial = serial;
+        this.name = name;
+        this.deviceType = deviceType;
     }
 
     public Long getId() {
@@ -41,5 +48,10 @@ public class Device {
 
     public LocalDateTime getCreationDate() {
         return creationDate;
+    }
+
+
+    public void setSecretHash(String hash) {
+        this.secretHash = hash;
     }
 }

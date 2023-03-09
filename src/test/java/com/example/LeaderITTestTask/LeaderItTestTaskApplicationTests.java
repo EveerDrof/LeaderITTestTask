@@ -29,6 +29,8 @@ class LeaderItTestTaskApplicationTests {
     private WebApplicationContext wac;
 
     private MockMvc mockMvc;
+    @Autowired
+    private DeviceRepository deviceRepository;
 
     @BeforeAll
     public void setup() {

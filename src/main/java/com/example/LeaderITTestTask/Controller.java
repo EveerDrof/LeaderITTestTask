@@ -6,15 +6,18 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.security.NoSuchAlgorithmException;
 import java.util.HashMap;
 import java.util.Optional;
 
 @RestController
 public class Controller {
-    private DeviceService deviceService;
+    private final DeviceService deviceService;
+    private final Security security;
 
-    public Controller(DeviceService devicesAndEventsService) {
+    public Controller(DeviceService devicesAndEventsService, Security security) {
         this.deviceService = devicesAndEventsService;
+        this.security = security;
     }
 
     private <T> ResponseEntity<ApiResponse<T>> wrapResponse(
@@ -50,12 +53,19 @@ public class Controller {
     )
     public ResponseEntity<ApiResponse<Object>> addNewDevice(@RequestBody Device device) {
         try {
-            deviceService.save(device);
+            device = deviceService.save(device);
         } catch (DataIntegrityViolationException exception) {
             return wrapBadRequest("This serial already exists");
         }
+        String secret;
+        try {
+            secret = security.nextKey();
+            device.setSecretHash(security.hash(secret));
+        } catch (NoSuchAlgorithmException noSuchAlgorithmException) {
+            return wrapResponse(null, "Server error", HttpStatus.INTERNAL_SERVER_ERROR);
+        }
         HashMap<String, String> result = new HashMap<>();
-        result.put("secretKey", "12345");
+        result.put("secretKey", secret);
         return wrapOk(result);
     }
 

@@ -23,4 +23,8 @@ public class DeviceService {
     public Optional<Device> getById(Long deviceId) {
         return deviceRepository.findById(deviceId);
     }
+
+    public Optional<Device> getBySerial(Long serial) {
+        return deviceRepository.findBySerial(serial);
+    }
 }

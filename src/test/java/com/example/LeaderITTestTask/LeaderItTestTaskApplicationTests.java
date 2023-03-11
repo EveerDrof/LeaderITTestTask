@@ -1,6 +1,7 @@
 package com.example.LeaderITTestTask;
 
 import jakarta.transaction.Transactional;
+import org.json.JSONArray;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
@@ -9,8 +10,12 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.ResultActions;
 import org.springframework.web.context.WebApplicationContext;
 
+import java.time.LocalDateTime;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -81,7 +86,7 @@ class LeaderItTestTaskApplicationTests {
                 utils.postDevice("Device", 1L, "Type")
         );
         Device device = utils.getDevice(1L);
-        utils.postEvent(key, "EventType", device.getId(), null)
+        utils.postEvent(key, "EventType", device.getSerial(), null)
                 .andExpect(status().isOk());
     }
 
@@ -89,8 +94,57 @@ class LeaderItTestTaskApplicationTests {
     public void postIncorrectSecretKey_should_return_401() throws Exception {
         utils.postDevice("Device", 1L, "Type");
         Device device = utils.getDevice(1L);
-        utils.postEvent("Incorrect Key", "EventType", device.getId(), null)
+        utils.postEvent("Incorrect Key", "EventType", device.getSerial(), null)
                 .andExpect(status().isUnauthorized())
                 .andExpect(jsonPath("$.message").value("Incorrect key"));
+    }
+
+    @Test
+    public void getEventsForDevice_should_return_200_and_events_list() throws Exception {
+        LocalDateTime beforeAdding = LocalDateTime.now();
+        String secret = utils.createNewTmpDevice();
+        utils.addEventToTmpDevice(secret, "A");
+        utils.addEventToTmpDevice(secret, "A");
+        String content = utils.getDatePageLimitContent(beforeAdding, LocalDateTime.now(), 0, "A");
+        String url = "/event/device/" + utils.getTmpDevice(secret).getSerial();
+        ResultActions resultActions = utils.performGet(url, content);
+        resultActions.andExpect(status().isOk());
+        resultActions.andExpect(jsonPath("$.payload").isArray());
+        assertEquals(2, utils.getPayloadAsArray(resultActions).length());
+    }
+
+    @Test
+    public void getEventsBetweenEarliestAndLatest_should_return_200_and_events_list() throws Exception {
+        String secret = utils.createNewTmpDevice();
+        utils.addEventToTmpDevice(secret, "A");
+        LocalDateTime earliestDate = LocalDateTime.now();
+        Thread.sleep(50);
+        utils.addEventToTmpDevice(secret, "B");
+        utils.addEventToTmpDevice(secret, "C");
+        Thread.sleep(50);
+        LocalDateTime latestDate = LocalDateTime.now();
+        utils.addEventToTmpDevice(secret, "E");
+        JSONArray jsonArray = utils.getEvents(earliestDate, latestDate, 0, null, secret);
+        assertEquals(2, jsonArray.length());
+        assertEquals("B", jsonArray.getJSONObject(0).getString("type"));
+        assertEquals("C", jsonArray.getJSONObject(1).getString("type"));
+    }
+
+    @Test
+    public void getEventsByType_should_should_return_200_and_events_list() throws Exception {
+        String secret = utils.createNewTmpDevice();
+        utils.addEventToTmpDevice(secret, "A");
+        Thread.sleep(50);
+        LocalDateTime earliestDate = LocalDateTime.now();
+        utils.addEventToTmpDevice(secret, "A");
+        utils.addEventToTmpDevice(secret, "B");
+        utils.addEventToTmpDevice(secret, "C");
+        utils.addEventToTmpDevice(secret, "A");
+        Thread.sleep(50);
+        LocalDateTime latestDate = LocalDateTime.now();
+        Thread.sleep(50);
+        utils.addEventToTmpDevice(secret, "A");
+        JSONArray jsonArray = utils.getEvents(earliestDate, latestDate, 0, "A", secret);
+        assertEquals(2, jsonArray.length());
     }
 }

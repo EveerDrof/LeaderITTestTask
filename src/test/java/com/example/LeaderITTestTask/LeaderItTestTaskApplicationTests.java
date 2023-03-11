@@ -147,4 +147,30 @@ class LeaderItTestTaskApplicationTests {
         JSONArray jsonArray = utils.getEvents(earliestDate, latestDate, 0, "A", secret);
         assertEquals(2, jsonArray.length());
     }
+
+    @Test
+    public void eventPaginationTest_should_return_200_and_paginated_events_list() throws Exception {
+        String secret = utils.createNewTmpDevice();
+        for (int i = 0; i < 63; i++) {
+            utils.addEventToTmpDevice(secret, "Y");
+        }
+        JSONArray events =
+                utils.getEvents(
+                        LocalDateTime.now().minusHours(1),
+                        LocalDateTime.now().plusHours(1),
+                        0,
+                        "Y",
+                        secret
+                );
+        assertEquals(50, events.length());
+        events =
+                utils.getEvents(
+                        LocalDateTime.now().minusHours(1),
+                        LocalDateTime.now().plusHours(1),
+                        1,
+                        "Y",
+                        secret
+                );
+        assertEquals(13, events.length());
+    }
 }

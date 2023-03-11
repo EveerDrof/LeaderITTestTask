@@ -1,5 +1,6 @@
 package com.example.LeaderITTestTask;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import org.hibernate.annotations.CreationTimestamp;
 
@@ -18,6 +19,7 @@ public class Device {
     @CreationTimestamp
     @Temporal(TemporalType.TIMESTAMP)
     private LocalDateTime creationDate;
+    @JsonIgnore
     private String secretHash;
 
     public Device() {
@@ -28,7 +30,7 @@ public class Device {
     public Long getId() {
         return id;
     }
-    
+
     public Long getSerial() {
         return serial;
     }

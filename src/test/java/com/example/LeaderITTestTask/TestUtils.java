@@ -87,7 +87,7 @@ public class TestUtils {
     }
 
     public Device getDevice(Long serial) throws Exception {
-        String content = performGet("/device/" + serial, "")
+        String content = performGet("/device/serial/" + serial, "")
                 .andReturn()
                 .getResponse()
                 .getContentAsString();
@@ -110,7 +110,7 @@ public class TestUtils {
         postEvent(secret, eventType, device.getSerial(), null);
     }
 
-    public Device getTmpDevice(String secret) throws Exception {
+    public Device getTmpDevice(String secret) {
         return tmpDevices.get(secret);
     }
 
@@ -147,5 +147,14 @@ public class TestUtils {
         String url = "/event/device/" + this.getTmpDevice(secret).getSerial();
         ResultActions resultActions = this.performGet(url, content);
         return this.getPayloadAsArray(resultActions);
+    }
+
+    public JSONObject getJson(String path, String content) throws Exception {
+        return new JSONObject(
+                performGet(path, content)
+                        .andReturn()
+                        .getResponse()
+                        .getContentAsString()
+        );
     }
 }

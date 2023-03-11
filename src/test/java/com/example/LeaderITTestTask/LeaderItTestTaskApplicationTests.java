@@ -2,6 +2,7 @@ package com.example.LeaderITTestTask;
 
 import jakarta.transaction.Transactional;
 import org.json.JSONArray;
+import org.json.JSONObject;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
@@ -52,7 +53,7 @@ class LeaderItTestTaskApplicationTests {
     @Test
     public void getCreatedDevice_should_return_device() throws Exception {
         utils.postDevice("My Refrigerator", 12312, "Refrigerator");
-        mockMvc.perform(get("/device/12312"))
+        mockMvc.perform(get("/device/serial/12312"))
                 .andExpect(status().isOk()).andExpect(
                         jsonPath("$.payload.name")
                                 .value("My Refrigerator")
@@ -73,7 +74,7 @@ class LeaderItTestTaskApplicationTests {
 
     @Test
     public void nonExistentSerialDeviceGetCheck_should_return_404() throws Exception {
-        mockMvc.perform(get("/device/291"))
+        mockMvc.perform(get("/device/serial/291"))
                 .andExpect(status().isNotFound())
                 .andExpect(jsonPath("$.message")
                         .value("No device with this serial")
@@ -172,5 +173,23 @@ class LeaderItTestTaskApplicationTests {
                         secret
                 );
         assertEquals(13, events.length());
+    }
+
+    @Test
+    public void getActiveDevicesTest_should_return_devices_with_recent_events() throws Exception {
+        String secret = utils.createNewTmpDevice();
+        String secret2 = utils.createNewTmpDevice();
+        String secret3 = utils.createNewTmpDevice();
+        JSONObject jsonObject = utils.getJson("/device/active", "");
+        assertEquals(0, jsonObject.getJSONArray("payload").length());
+        utils.postEvent(secret, "A", utils.getTmpDevice(secret).getSerial(), null);
+        jsonObject = utils.getJson("/device/active", "");
+        assertEquals(1, jsonObject.getJSONArray("payload").length());
+        utils.postEvent(secret2, "A", utils.getTmpDevice(secret2).getSerial(), null);
+        jsonObject = utils.getJson("/device/active", "");
+        assertEquals(2, jsonObject.getJSONArray("payload").length());
+        utils.postEvent(secret3, "A", utils.getTmpDevice(secret3).getSerial(), null);
+        jsonObject = utils.getJson("/device/active", "");
+        assertEquals(3, jsonObject.getJSONArray("payload").length());
     }
 }

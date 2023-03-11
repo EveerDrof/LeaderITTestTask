@@ -32,25 +32,30 @@ public class DeviceController {
             consumes = MediaType.APPLICATION_JSON_VALUE
     )
     public ResponseEntity<ApiResponse<Object>> addNewDevice(@RequestBody Device device) {
-        try {
-            device = deviceService.save(device);
-        } catch (DataIntegrityViolationException exception) {
-            return badRequest("This serial already exists");
-        }
         String secret;
         secret = nextKey();
         device.setSecretHash(passwordEncoder.encode(secret));
+        try {
+            deviceService.save(device);
+        } catch (DataIntegrityViolationException exception) {
+            return badRequest("This serial already exists");
+        }
         HashMap<String, String> result = new HashMap<>();
         result.put("secretKey", secret);
         return ok(result);
     }
 
-    @GetMapping(value = "/device/{serialNumber}")
+    @GetMapping(value = "/device/serial/{serialNumber}")
     public ResponseEntity<ApiResponse<Object>> getDeviceBySerialNumber(@PathVariable Long serialNumber) {
         Optional<Device> result = deviceService.getDevice(serialNumber);
         if (!result.isPresent()) {
             return notFound("No device with this serial");
         }
         return ok(result.get());
+    }
+
+    @GetMapping(value = "/device/active")
+    public ResponseEntity<ApiResponse<Object>> getActiveDevices() {
+        return ok(deviceService.findAllActiveDevices());
     }
 }

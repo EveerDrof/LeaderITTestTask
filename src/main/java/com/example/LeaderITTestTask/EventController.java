@@ -45,7 +45,8 @@ public class EventController {
             return unauthorized("Incorrect key");
         }
         Event event = new Event(device, (String) map.get("type"));
-        eventService.save(event);
+        event = eventService.save(event);
+        deviceService.setDeviceActive(device, event);
         return ok();
     }
 

@@ -36,6 +36,9 @@ public class EventController {
     public ResponseEntity<ApiResponse<Object>> addNewEvent(
             @RequestBody HashMap<String, Object> map
     ) {
+        if (!map.containsKey("type")) {
+            return badRequest("Type is required");
+        }
         Long serial = Long.valueOf((Integer) map.get("deviceSerial"));
         Optional<Device> deviceOptional = deviceService.getBySerial(serial);
         if (!deviceOptional.isPresent()) {

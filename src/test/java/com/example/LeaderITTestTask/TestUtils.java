@@ -166,4 +166,12 @@ public class TestUtils {
         assertEquals(tmpDevice.getCreationDate(), deviceToAssert.getCreationDate());
         assertEquals(tmpDevice.getSerial(), deviceToAssert.getSerial());
     }
+
+    public ResultActions postEventForTmpDevice(String secret, String eventType) throws Exception {
+        return postEvent(secret, eventType, getTmpDevice(secret).getSerial(), "asdasdd");
+    }
+
+    public JSONArray getEvents(int page, String type, String secret) throws Exception {
+        return getEvents(LocalDateTime.now().minusHours(1), LocalDateTime.now().plusHours(1), page, type, secret);
+    }
 }

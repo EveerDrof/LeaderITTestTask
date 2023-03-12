@@ -209,4 +209,29 @@ class LeaderItTestTaskApplicationTests {
         utils.assertTmpDevice(jsonArray.getJSONObject(1), secret1);
         utils.assertTmpDevice(jsonArray.getJSONObject(2), secret2);
     }
+
+    @Test
+    public void getDevicesByType_should_return_all_devices() throws Exception {
+        String secret0 = utils.createNewTmpDevice("0");
+        String secret1 = utils.createNewTmpDevice("1");
+        String secret2 = utils.createNewTmpDevice("2");
+        String query = utils.getDatePageLimitContent(
+                LocalDateTime.now().minusHours(1),
+                LocalDateTime.now().plusHours(1),
+                0,
+                "2"
+        );
+        JSONArray jsonArray = utils.getPayloadAsArray("/device/all", query);
+        assertEquals(1, jsonArray.length());
+        utils.assertTmpDevice(jsonArray.getJSONObject(0), secret2);
+    }
+
+    @Test
+    public void postEventWithoutType_should_return_400_() throws Exception {
+        String secret = utils.createNewTmpDevice("AA");
+        ResultActions resultActions = utils.postEventForTmpDevice(secret, null);
+        resultActions
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.message").value("Type is required"));
+    }
 }

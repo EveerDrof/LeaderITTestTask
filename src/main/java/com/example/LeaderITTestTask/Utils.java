@@ -1,9 +1,27 @@
 package com.example.LeaderITTestTask;
 
+import com.google.gson.*;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 
+import java.lang.reflect.Type;
+import java.time.LocalDateTime;
+
 public class Utils {
+
+    public static Gson createGson() {
+        return new GsonBuilder().registerTypeAdapter(LocalDateTime.class,
+                new JsonDeserializer<LocalDateTime>() {
+                    @Override
+                    public LocalDateTime deserialize(
+                            JsonElement json,
+                            Type type,
+                            JsonDeserializationContext jsonDeserializationContext
+                    ) throws JsonParseException {
+                        return LocalDateTime.parse(json.getAsJsonPrimitive().getAsString());
+                    }
+                }).create();
+    }
 
     public static class Response {
         public static <T> ResponseEntity<ApiResponse<T>> response(

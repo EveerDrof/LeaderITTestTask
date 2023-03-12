@@ -4,8 +4,6 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
-import java.time.LocalDateTime;
-import java.util.HashMap;
 import java.util.List;
 
 @Service
@@ -21,25 +19,13 @@ public class EventService {
         this.deviceRepository = deviceRepository;
     }
 
-    public List<Event> findAll(Long deviceSerial, HashMap<String, Object> parameters) {
-        LocalDateTime earliestDate = (LocalDateTime) parameters.get("earliestDate");
-        LocalDateTime latestDate = (LocalDateTime) parameters.get("latestDate");
-        int page = (Integer) parameters.get("page");
+    public List<Event> findAll(Long deviceSerial, SelectionData selectionData) {
+        int page = selectionData.getPage();
         PageRequest pageRequest = PageRequest.of(page, 50, Sort.by("creationDate"));
-        String type;
-        if (!parameters.containsKey("type")) {
-            return eventRepository.findByCreationDateBetweenAndDevice_Serial(
-                    earliestDate,
-                    latestDate,
-                    deviceSerial,
-                    pageRequest
-            );
-        }
-        type = (String) parameters.get("type");
-        return eventRepository.findByCreationDateBetweenAndTypeAndDevice_Serial(
-                earliestDate,
-                latestDate,
-                type,
+        return eventRepository.findEvents(
+                selectionData.getStartDateTime(),
+                selectionData.getEndDateTime(),
+                selectionData.getType(),
                 deviceSerial,
                 pageRequest
         );

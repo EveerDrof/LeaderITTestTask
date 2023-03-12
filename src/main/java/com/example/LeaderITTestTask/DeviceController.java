@@ -1,5 +1,6 @@
 package com.example.LeaderITTestTask;
 
+import com.google.gson.Gson;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -16,6 +17,7 @@ import static com.example.LeaderITTestTask.Utils.Response.*;
 public class DeviceController {
     private final DeviceService deviceService;
     private final PasswordEncoder passwordEncoder;
+    private final Gson gson;
 
     public DeviceController(
             DeviceService devicesAndEventsService,
@@ -23,6 +25,7 @@ public class DeviceController {
     ) {
         this.deviceService = devicesAndEventsService;
         this.passwordEncoder = passwordEncoder;
+        this.gson = Utils.createGson();
     }
 
 
@@ -58,5 +61,11 @@ public class DeviceController {
     public ResponseEntity<ApiResponse<Object>> getActiveDevices() {
         deviceService.removeInactiveDevices();
         return ok(deviceService.findAllActiveDevices());
+    }
+
+    @GetMapping(value = "/device/all")
+    public ResponseEntity<ApiResponse<Object>> getDevices(@RequestBody String body) {
+        SelectionData selectionData = gson.fromJson(body, SelectionData.class);
+        return ok(deviceService.findDevices(selectionData));
     }
 }

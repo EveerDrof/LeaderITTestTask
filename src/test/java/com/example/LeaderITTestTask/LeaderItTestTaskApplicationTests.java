@@ -57,7 +57,7 @@ class LeaderItTestTaskApplicationTests {
                 .andExpect(status().isOk()).andExpect(
                         jsonPath("$.payload.name")
                                 .value("My Refrigerator")
-                ).andExpect(jsonPath("$.payload.deviceType")
+                ).andExpect(jsonPath("$.payload.type")
                         .value("Refrigerator"))
                 .andExpect(jsonPath("$.payload.creationDate").exists());
     }
@@ -118,14 +118,14 @@ class LeaderItTestTaskApplicationTests {
     public void getEventsBetweenEarliestAndLatest_should_return_200_and_events_list() throws Exception {
         String secret = utils.createNewTmpDevice();
         utils.addEventToTmpDevice(secret, "A");
-        LocalDateTime earliestDate = LocalDateTime.now();
+        LocalDateTime startDate = LocalDateTime.now();
         Thread.sleep(50);
         utils.addEventToTmpDevice(secret, "B");
         utils.addEventToTmpDevice(secret, "C");
         Thread.sleep(50);
-        LocalDateTime latestDate = LocalDateTime.now();
+        LocalDateTime endDate = LocalDateTime.now();
         utils.addEventToTmpDevice(secret, "E");
-        JSONArray jsonArray = utils.getEvents(earliestDate, latestDate, 0, null, secret);
+        JSONArray jsonArray = utils.getEvents(startDate, endDate, 0, null, secret);
         assertEquals(2, jsonArray.length());
         assertEquals("B", jsonArray.getJSONObject(0).getString("type"));
         assertEquals("C", jsonArray.getJSONObject(1).getString("type"));
@@ -136,16 +136,16 @@ class LeaderItTestTaskApplicationTests {
         String secret = utils.createNewTmpDevice();
         utils.addEventToTmpDevice(secret, "A");
         Thread.sleep(50);
-        LocalDateTime earliestDate = LocalDateTime.now();
+        LocalDateTime startDate = LocalDateTime.now();
         utils.addEventToTmpDevice(secret, "A");
         utils.addEventToTmpDevice(secret, "B");
         utils.addEventToTmpDevice(secret, "C");
         utils.addEventToTmpDevice(secret, "A");
         Thread.sleep(50);
-        LocalDateTime latestDate = LocalDateTime.now();
+        LocalDateTime endDate = LocalDateTime.now();
         Thread.sleep(50);
         utils.addEventToTmpDevice(secret, "A");
-        JSONArray jsonArray = utils.getEvents(earliestDate, latestDate, 0, "A", secret);
+        JSONArray jsonArray = utils.getEvents(startDate, endDate, 0, "A", secret);
         assertEquals(2, jsonArray.length());
     }
 
@@ -191,5 +191,22 @@ class LeaderItTestTaskApplicationTests {
         utils.postEvent(secret3, "A", utils.getTmpDevice(secret3).getSerial(), null);
         jsonObject = utils.getJson("/device/active", "");
         assertEquals(3, jsonObject.getJSONArray("payload").length());
+    }
+
+    @Test
+    public void getAllDevices_should_return_all_devices() throws Exception {
+        String secret0 = utils.createNewTmpDevice("0");
+        String secret1 = utils.createNewTmpDevice("1");
+        String secret2 = utils.createNewTmpDevice("2");
+        String query = utils.getDatePageLimitContent(
+                LocalDateTime.now().minusHours(1),
+                LocalDateTime.now().plusHours(1),
+                0,
+                null
+        );
+        JSONArray jsonArray = utils.getPayloadAsArray("/device/all", query);
+        utils.assertTmpDevice(jsonArray.getJSONObject(0), secret0);
+        utils.assertTmpDevice(jsonArray.getJSONObject(1), secret1);
+        utils.assertTmpDevice(jsonArray.getJSONObject(2), secret2);
     }
 }

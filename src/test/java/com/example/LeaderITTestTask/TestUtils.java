@@ -1,6 +1,6 @@
 package com.example.LeaderITTestTask;
 
-import com.google.gson.*;
+import com.google.gson.Gson;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -9,10 +9,10 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.ResultActions;
 
 import java.io.UnsupportedEncodingException;
-import java.lang.reflect.Type;
 import java.time.LocalDateTime;
 import java.util.HashMap;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 
@@ -24,24 +24,14 @@ public class TestUtils {
     public TestUtils(MockMvc mockMvc) {
         tmpDevices = new HashMap<>();
         this.mockMvc = mockMvc;
-        gson = new GsonBuilder().registerTypeAdapter(LocalDateTime.class,
-                new JsonDeserializer<LocalDateTime>() {
-                    @Override
-                    public LocalDateTime deserialize(
-                            JsonElement json,
-                            Type type,
-                            JsonDeserializationContext jsonDeserializationContext
-                    ) throws JsonParseException {
-                        return LocalDateTime.parse(json.getAsJsonPrimitive().getAsString());
-                    }
-                }).create();
+        gson = Utils.createGson();
     }
 
-    public ResultActions postDevice(String name, long serial, String deviceType) throws Exception {
+    public ResultActions postDevice(String name, long serial, String type) throws Exception {
         JSONObject jsonObject = new JSONObject();
         jsonObject.put("name", name);
         jsonObject.put("serial", serial);
-        jsonObject.put("deviceType", deviceType);
+        jsonObject.put("type", type);
         return postJSON(jsonObject, "/device");
     }
 
@@ -95,14 +85,18 @@ public class TestUtils {
         return gson.fromJson(devicePayload, Device.class);
     }
 
-    public String createNewTmpDevice() throws Exception {
+    public String createNewTmpDevice(String type) throws Exception {
         long deviceIndex = tmpDevices.size();
         String secretKey = getSecretKey(
-                postDevice("Device_" + deviceIndex, deviceIndex, "Type")
+                postDevice("Device_" + deviceIndex, deviceIndex, type)
         );
         Device device = getDevice(deviceIndex);
         tmpDevices.put(secretKey, device);
         return secretKey;
+    }
+
+    public String createNewTmpDevice() throws Exception {
+        return createNewTmpDevice("Type");
     }
 
     public void addEventToTmpDevice(String secret, String eventType) throws Exception {
@@ -115,14 +109,14 @@ public class TestUtils {
     }
 
     public String getDatePageLimitContent(
-            LocalDateTime earliestDate,
-            LocalDateTime latestDate,
+            LocalDateTime startDateTime,
+            LocalDateTime endDateTime,
             long page,
             String type
     ) throws JSONException {
         JSONObject jsonObject = new JSONObject();
-        jsonObject.put("earliestDate", earliestDate);
-        jsonObject.put("latestDate", latestDate);
+        jsonObject.put("startDateTime", startDateTime);
+        jsonObject.put("endDateTime", endDateTime);
         jsonObject.put("page", page);
         jsonObject.put("type", type);
         return jsonObject.toString();
@@ -136,14 +130,20 @@ public class TestUtils {
         return jsonObject.getJSONArray("payload");
     }
 
+    public JSONArray getPayloadAsArray(String path, String content) throws Exception {
+        return getPayloadAsArray(
+                performGet(path, content)
+        );
+    }
+
     public JSONArray getEvents(
-            LocalDateTime earliestDate,
-            LocalDateTime latestDate,
+            LocalDateTime startDateTime,
+            LocalDateTime endDateTime,
             long page,
             String type,
             String secret
     ) throws Exception {
-        String content = this.getDatePageLimitContent(earliestDate, latestDate, page, type);
+        String content = this.getDatePageLimitContent(startDateTime, endDateTime, page, type);
         String url = "/event/device/" + this.getTmpDevice(secret).getSerial();
         ResultActions resultActions = this.performGet(url, content);
         return this.getPayloadAsArray(resultActions);
@@ -156,5 +156,14 @@ public class TestUtils {
                         .getResponse()
                         .getContentAsString()
         );
+    }
+
+    public void assertTmpDevice(JSONObject deviceJson, String tmpSecret) {
+        Device tmpDevice = getTmpDevice(tmpSecret);
+        Device deviceToAssert = gson.fromJson(String.valueOf(deviceJson), Device.class);
+        assertEquals(tmpDevice.getType(), deviceToAssert.getType());
+        assertEquals(tmpDevice.getId(), deviceToAssert.getId());
+        assertEquals(tmpDevice.getCreationDate(), deviceToAssert.getCreationDate());
+        assertEquals(tmpDevice.getSerial(), deviceToAssert.getSerial());
     }
 }

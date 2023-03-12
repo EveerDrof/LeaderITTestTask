@@ -15,7 +15,7 @@ public class Device {
     @Column(name = "serial", nullable = false, unique = true)
     private Long serial;
     private String name;
-    private String deviceType;
+    private String type;
     @CreationTimestamp
     @Temporal(TemporalType.TIMESTAMP)
     private LocalDateTime creationDate;
@@ -41,8 +41,8 @@ public class Device {
     }
 
 
-    public String getDeviceType() {
-        return deviceType;
+    public String getType() {
+        return type;
     }
 
 

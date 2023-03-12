@@ -1,7 +1,11 @@
 package com.example.LeaderITTestTask;
 
+import jakarta.transaction.Transactional;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.support.TransactionTemplate;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
@@ -9,6 +13,8 @@ import java.util.Optional;
 public class DeviceService {
     private final DeviceRepository deviceRepository;
     private final DeviceLastActivityRepository deviceLastActivityRepository;
+    @Autowired
+    private TransactionTemplate transactionTemplate;
 
     public DeviceService(DeviceRepository deviceRepository, DeviceLastActivityRepository deviceLastActivityRepository) {
         this.deviceRepository = deviceRepository;
@@ -42,5 +48,11 @@ public class DeviceService {
         }
         DeviceLastActivity deviceLastActivity = new DeviceLastActivity(device, event);
         deviceLastActivityRepository.save(deviceLastActivity);
+    }
+
+    @Transactional
+    public void removeInactiveDevices() {
+        LocalDateTime timeBeforeDeletion = LocalDateTime.now().minusMinutes(30);
+        deviceLastActivityRepository.deleteByCreationDateBefore(timeBeforeDeletion);
     }
 }

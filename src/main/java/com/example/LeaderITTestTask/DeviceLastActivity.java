@@ -2,6 +2,8 @@ package com.example.LeaderITTestTask;
 
 import jakarta.persistence.*;
 
+import java.time.LocalDateTime;
+
 @Entity
 @Table(name = "device_last_activity")
 public class DeviceLastActivity {
@@ -10,17 +12,25 @@ public class DeviceLastActivity {
     @Column(name = "id", nullable = false)
     private Long id;
 
-    @OneToOne(optional = false, orphanRemoval = true)
+    @OneToOne(optional = false)
     @JoinColumn(name = "device_id", nullable = false, unique = true)
     private Device device;
 
-    @OneToOne(optional = false, orphanRemoval = true)
+    @OneToOne(optional = false)
     @JoinColumn(name = "event_id", nullable = false, unique = true)
     private Event event;
+
+    @Temporal(TemporalType.TIMESTAMP)
+    private LocalDateTime creationDate;
+
+    public DeviceLastActivity() {
+
+    }
 
     public DeviceLastActivity(Device device, Event event) {
         this.device = device;
         this.event = event;
+        this.creationDate = event.getCreationDate();
     }
 
     public Event getEvent() {
@@ -47,4 +57,7 @@ public class DeviceLastActivity {
         this.id = id;
     }
 
+    public LocalDateTime getCreationDate() {
+        return creationDate;
+    }
 }

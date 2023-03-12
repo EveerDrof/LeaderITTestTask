@@ -56,6 +56,7 @@ public class DeviceController {
 
     @GetMapping(value = "/device/active")
     public ResponseEntity<ApiResponse<Object>> getActiveDevices() {
+        deviceService.removeInactiveDevices();
         return ok(deviceService.findAllActiveDevices());
     }
 }

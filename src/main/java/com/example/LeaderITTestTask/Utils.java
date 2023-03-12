@@ -6,6 +6,7 @@ import org.springframework.http.ResponseEntity;
 
 import java.lang.reflect.Type;
 import java.time.LocalDateTime;
+import java.time.ZonedDateTime;
 
 public class Utils {
 
@@ -18,7 +19,12 @@ public class Utils {
                             Type type,
                             JsonDeserializationContext jsonDeserializationContext
                     ) throws JsonParseException {
-                        return LocalDateTime.parse(json.getAsJsonPrimitive().getAsString());
+                        String str = json.getAsJsonPrimitive().getAsString();
+                        try {
+                            return ZonedDateTime.parse(str).toLocalDateTime();
+                        } catch (Exception exception) {
+                            return LocalDateTime.parse(str);
+                        }
                     }
                 }).create();
     }

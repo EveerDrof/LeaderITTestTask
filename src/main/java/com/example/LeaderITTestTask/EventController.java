@@ -49,7 +49,7 @@ public class EventController {
         if (!passwordEncoder.matches(secretKey, device.getSecretHash())) {
             return unauthorized("Incorrect key");
         }
-        Event event = new Event(device, (String) map.get("type"));
+        Event event = new Event(device, (String) map.get("type"), gson.toJson(map.get("payload")));
         event = eventService.save(event);
         deviceService.setDeviceActive(device, event);
         return ok();

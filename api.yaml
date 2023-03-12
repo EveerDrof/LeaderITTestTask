@@ -22,7 +22,24 @@ paths:
                     type: string
                   payload:
                     $ref: '#/components/schemas/AddDeviceResponse'
-  /device/{serialNumber}:
+  /device/active:
+    get:
+      description: Get all active devices.Device is active for 30 minutes after last event received
+      responses:
+        '200':
+          description: Returns all active devices
+          content:
+            application/json:
+              schema:
+                properties:
+                  message:
+                    type: string
+                  payload:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Device'
+
+  /device/serial/{serialNumber}:
     get:
       description: Get device data
       responses:
@@ -36,13 +53,22 @@ paths:
                     type: string
                   payload:
                     $ref: '#/components/schemas/Device'
-  /device/:
+  /device/all:
     get:
       requestBody:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/DeviceQuery'
+              startDateTime:
+                type: string
+                format: date-time
+              endDateTime:
+                type: string
+                format: date-time
+              "type":
+                type: string
+              page:
+                type: number
 
       responses:
         default:
@@ -57,8 +83,6 @@ paths:
                     type: array
                     items:
                       $ref: '#/components/schemas/Device'
-                  totalDevicesSize:
-                    type: integer
   /event:
     post:
       description: Adds a new event for a specified device
@@ -83,7 +107,17 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/DatePageLlimit'
+              properties:
+                startDateTime:
+                  type: string
+                  format: date-time
+                endDateTime:
+                  type: string
+                  format: date-time
+                type:
+                  type: string
+                page:
+                  type: number
       responses:
         default:
           description: Returns all events that fit query
@@ -93,12 +127,12 @@ paths:
                 properties:
                   message:
                     type: string
-                  events:
-                    type: array
-                    items:
-                      $ref: '#/components/schemas/Event'
-                  totalEventsSize:
-                    type: integer
+                  payload:
+                    properties:
+                      events:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/Event'
   /event/grouped-by-device-type/:
     get:
       requestBody:
@@ -120,8 +154,6 @@ paths:
                         additionalProperties:
                           items:
                             $ref: '#/components/schemas/Event'
-                      totalEventsSize:
-                        type: integer
 
 components:
   schemas:
@@ -137,33 +169,27 @@ components:
         serial:
           type: number
           format: int64
-        deviceType:
+        type:
           type: string
     Device:
       properties:
+        id:
+          type: number
         name:
           type: string
         serial:
           type: number
           format: int64
-        deviceType:
+        type:
           type: string
-        isActive:
-          type: boolean
         creationDate:
-          type: string
-          format: date-time
-        firstActivityDate:
-          type: string
-          format: date-time
-        lastActivityDate:
           type: string
           format: date-time
     AddEventInfo:
       properties:
         secretKey:
           type: string
-        eventType:
+        "type":
           type: string
         deviceSerial:
           type: integer
@@ -178,12 +204,14 @@ components:
           $ref: '#/components/schemas/DatePageLlimit'
     DatePageLlimit:
       properties:
-        latestCreationDate:
+        earliestDate:
           type: string
           format: date-time
-        earliestCreationDate:
+        latestDate:
           type: string
           format: date-time
+        type:
+          type: string
         page:
           type: integer
     Event:

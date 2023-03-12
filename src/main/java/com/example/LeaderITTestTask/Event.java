@@ -21,15 +21,18 @@ public class Event {
     @Temporal(TemporalType.TIMESTAMP)
     private LocalDateTime creationDate;
 
+    private String payload;
+
     private String type;
 
     public Event() {
 
     }
 
-    public Event(Device device, String type) {
+    public Event(Device device, String type, String payload) {
         this.device = device;
         this.type = type;
+        this.payload = payload;
     }
 
     public Device getDevice() {
@@ -50,5 +53,9 @@ public class Event {
 
     public String getType() {
         return type;
+    }
+
+    public String getPayload() {
+        return payload;
     }
 }

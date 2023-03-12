@@ -28,6 +28,4 @@ public interface EventRepository extends JpaRepository<Event, Long> {
             @Param("serial") Long serial,
             Pageable pageable
     );
-
-
 }
